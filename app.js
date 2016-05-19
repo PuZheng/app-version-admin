@@ -6,7 +6,7 @@ var koa = require('koa')
     ,logger = require('./logger.js')
     ,koaBody = require('koa-body')();
 
-router.post('/', koaBody, function *(next) {
+router.post('/object/', koaBody, function *(next) {
     if (!this.request.body.name.trim()) {
         this.body = {
             name: "名称不能为空"
@@ -31,6 +31,9 @@ router.post('/', koaBody, function *(next) {
     this.body = {
         data: yield models.Application.forge().orderBy("-id").fetchAll()
     };
+    yield next;
+}).get('/object/:id', function *(next) {
+    this.body = yield models.Application.forge({id: this.params.id}).fetch();
     yield next;
 });
 
