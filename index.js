@@ -4,8 +4,42 @@ var koa = require('koa')
     ,koaLogger = require('koa-logger')
     ,logger = require('./logger.js')
     ,send = require('koa-send')
+    ,fs = require('mz/fs')
+    ,path = require('path')
+    ,parse = require('co-busboy')
+    ,router = require('koa-router')()
+    ,utils = require('./utils.js')
     ,mount = require('koa-mount');
 
+router.post('/upload', function *(next) {
+    var parts = parse(this), part, paths = [], username = "", orgCode = "";
+    while ((part = yield parts)) {
+        if (part.length) {
+            switch (part[0]) {
+                case 'username':
+                    username = part[1];
+                    break;
+                case 'orgCode':
+                    orgCode = part[1];
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            // part is stream
+            var dirPath = path.join(config.get('assetDir'), orgCode, username);
+            yield utils.assertDir(dirPath);
+            var stream = fs.createWriteStream(path.join(dirPath, part.filename));
+            logger.info('uploading %s', stream.path);
+            part.pipe(stream);
+            paths.push(stream.path);
+        }
+    }
+    this.body = {
+        paths: paths,
+    };
+    yield next;
+});
 
 if (require.main === module) {
     koa().use(error())
@@ -18,8 +52,22 @@ if (require.main === module) {
         timeLimit: 100
     }))
     .use(mount('/api/app', require('./app.js').app))
-    .use(function *() {
-        yield send(this, this.path == '/'? '/index.html': this.path, {
+    .use(router.routes())
+    .use(router.allowedMethods())
+    .use(function *(next) {
+        if (this.path.startsWith('/api/') || this.method != 'GET') {
+            yield next;
+            return;
+        }
+        var _path = this.path == '/'? '/index.html': this.path;
+        try {
+            yield fs.stat(path.join(__dirname, 'frontend', _path));
+        } catch (err) {
+            if (err.code == 'ENOENT') {
+                _path = '/index.html';
+            }
+        }
+        yield send(this, _path, {
             root: __dirname + '/frontend'
         });
     })
