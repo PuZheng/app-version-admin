@@ -17,7 +17,7 @@ router.post('/', koaBody, function *(next) {
     }
     try {
         var item = yield models.Application.forge(casing.snakeize(this.request.body)).save();
-        this.body = {};
+        this.body = yield models.Application.forge({id: item.id}).fetch();
     } catch (err) {
         if (err.code == 'SQLITE_CONSTRAINT') {
            this.body = {
@@ -26,6 +26,11 @@ router.post('/', koaBody, function *(next) {
            this.status = 403;
         }
     }
+    yield next;
+}).get('/list', function *(next) {
+    this.body = {
+        data: yield models.Application.forge().orderBy("-id").fetchAll()
+    };
     yield next;
 });
 
