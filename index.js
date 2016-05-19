@@ -52,6 +52,7 @@ if (require.main === module) {
         timeLimit: 100
     }))
     .use(mount('/api/app', require('./app.js').app))
+    .use(mount('/api/version', require('./version.js').app))
     .use(router.routes())
     .use(router.allowedMethods())
     .use(function *(next) {

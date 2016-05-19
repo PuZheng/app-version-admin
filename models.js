@@ -7,8 +7,19 @@ var Application = bookshelf.Model.extend({
     serialize: function () {
         return casing.camelize(bookshelf.Model.prototype.serialize.apply(this));
     },
+    versions: function () {
+        return this.hasMany(Version);
+    }
+});
+
+var Version = bookshelf.Model.extend({
+    tableName: 'version',
+    serialize: function () {
+        return casing.camelize(bookshelf.Model.prototype.serialize.apply(this));
+    },
 });
 
 module.exports = {
     Application: Application,
+    Version: Version,
 };

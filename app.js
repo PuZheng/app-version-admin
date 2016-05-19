@@ -16,8 +16,10 @@ router.post('/object/', koaBody, function *(next) {
         return;
     }
     try {
-        var item = yield models.Application.forge(casing.snakeize(this.request.body)).save();
-        this.body = yield models.Application.forge({id: item.id}).fetch();
+        var item = yield models.Application.forge(casing.snakeize(Object.assign({
+            createdAt: new Date()
+        }, this.request.body))).save();
+        this.body = item;
     } catch (err) {
         if (err.code == 'SQLITE_CONSTRAINT') {
            this.body = {
@@ -33,7 +35,9 @@ router.post('/object/', koaBody, function *(next) {
     };
     yield next;
 }).get('/object/:id', function *(next) {
-    this.body = yield models.Application.forge({id: this.params.id}).fetch();
+    this.body = yield models.Application.forge({id: this.params.id}).fetch({
+        withRelated: ['versions']
+    });
     yield next;
 });
 
