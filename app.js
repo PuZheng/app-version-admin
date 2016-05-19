@@ -7,9 +7,9 @@ var koa = require('koa')
     ,koaBody = require('koa-body')();
 
 router.post('/object/', koaBody, function *(next) {
-    if (!this.request.body.name.trim()) {
+    if (!this.request.body.package.trim()) {
         this.body = {
-            name: "名称不能为空"
+            package: "包名称不能为空"
         };
         this.status = 403;
         yield next;
@@ -17,7 +17,9 @@ router.post('/object/', koaBody, function *(next) {
     }
     try {
         var item = yield models.Application.forge(casing.snakeize(Object.assign({
-            createdAt: new Date()
+            createdAt: function (d) {
+                return d.getFullYear() + '年' + d.getMonth() + '月' + d.getDay() + '日';
+            }(new Date())
         }, this.request.body))).save();
         this.body = item;
     } catch (err) {

@@ -4,7 +4,7 @@ module.exports = initDB;
 var initDB = function (knex) {
     return knex.schema.createTable('application', function (table) {
         table.increments();
-        table.string('name').unique().notNullable();
+        table.string('package').unique().notNullable();
         table.string('brief');
         table.timestamp('created_at');
     }).createTable("version", function (table) {

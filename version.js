@@ -2,6 +2,7 @@ var koa = require('koa')
     ,json = require('koa-json')
     ,models = require('./models.js')
     ,casing = require('casing')
+    ,router = require('koa-router')()
     ,koaBody = require('koa-body')();
 
 router.post('/object/', koaBody, function *(next) {
